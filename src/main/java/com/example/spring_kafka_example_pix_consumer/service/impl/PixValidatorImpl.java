@@ -5,6 +5,7 @@ import com.example.spring_kafka_example_pix_consumer.model.Pix;
 import com.example.spring_kafka_example_pix_consumer.model.dto.PixResponseDto;
 import com.example.spring_kafka_example_pix_consumer.repository.KeyTableRepository;
 import com.example.spring_kafka_example_pix_consumer.repository.PixRepository;
+import com.example.spring_kafka_example_pix_consumer.service.KeyValidator;
 import com.example.spring_kafka_example_pix_consumer.service.PixValidator;
 import lombok.AllArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class PixValidatorImpl implements PixValidator {
 
-    private KeyTableRepository keyTableRepository;
+    private KeyValidator keyValidator;
 
     private PixRepository pixRepository;
 
@@ -29,15 +30,10 @@ public class PixValidatorImpl implements PixValidator {
 
         Pix pix = pixRepository.findByIdentifier(pixResponseDto.getIdentifier());
 
-        KeyTable origin = keyTableRepository.findByKeyValue(pixResponseDto.getOriginKey());
-        KeyTable destiny = keyTableRepository.findByKeyValue(pixResponseDto.getDestinyKey());
-
-        if (origin == null || destiny == null){
-            pix.setStatus(Pix.PixStatus.ERRO);
-        } else {
-            pix.setStatus(Pix.PixStatus.PROCESSADO);
-        }
+        keyValidator.validateKey(pix);
 
         pixRepository.save(pix);
     }
+
+
 }
